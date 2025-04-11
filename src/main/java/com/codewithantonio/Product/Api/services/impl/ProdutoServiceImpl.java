@@ -1,6 +1,7 @@
 package com.codewithantonio.Product.Api.services.impl;
 
 import com.codewithantonio.Product.Api.domain.product.Produto;
+import com.codewithantonio.Product.Api.domain.product.ProdutoListResponseDTO;
 import com.codewithantonio.Product.Api.domain.product.ProdutoRequestDTO;
 import com.codewithantonio.Product.Api.domain.product.ProdutoResponseDTO;
 import com.codewithantonio.Product.Api.infra.exception.ResourceNotFoundException;
@@ -19,11 +20,13 @@ public class ProdutoServiceImpl implements ProdutoService {
     private ProdutoRepository repository;
 
     @Override
-    public List<ProdutoResponseDTO> getAllProducts() {
-        return repository.findAll()
+    public ProdutoListResponseDTO getAllProducts() {
+        List<ProdutoResponseDTO> produtos = repository.findAll()
                 .stream()
                 .map(ProdutoResponseDTO::new)
                 .toList();
+
+        return new ProdutoListResponseDTO(produtos);
     }
 
     @Override

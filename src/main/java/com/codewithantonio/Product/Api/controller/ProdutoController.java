@@ -1,6 +1,7 @@
 package com.codewithantonio.Product.Api.controller;
 
 import com.codewithantonio.Product.Api.domain.product.Produto;
+import com.codewithantonio.Product.Api.domain.product.ProdutoListResponseDTO;
 import com.codewithantonio.Product.Api.domain.product.ProdutoRequestDTO;
 import com.codewithantonio.Product.Api.domain.product.ProdutoResponseDTO;
 import com.codewithantonio.Product.Api.services.ProdutoService;
@@ -24,9 +25,9 @@ public class ProdutoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProdutoResponseDTO>> getAllProducts() {
-        List<ProdutoResponseDTO> products = produtoService.getAllProducts();
-        return ResponseEntity.ok(products);
+    public ResponseEntity<ProdutoListResponseDTO> getAllProducts() {
+        ProdutoListResponseDTO response = produtoService.getAllProducts();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
@@ -39,7 +40,7 @@ public class ProdutoController {
     public ResponseEntity<ProdutoResponseDTO> postProduct(@RequestBody @Valid ProdutoRequestDTO body) {
         Produto newProduct = produtoService.createProduct(body);
         ProdutoResponseDTO response = new ProdutoResponseDTO(newProduct);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return new ResponseEntity<ProdutoResponseDTO>(response, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
