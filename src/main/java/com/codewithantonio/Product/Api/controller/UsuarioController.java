@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/user")
@@ -59,8 +60,9 @@ public class UsuarioController {
         Usuario usuario = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
 
-        Usuario usuarioComEmail = repository.findByEmail(data.email());
-        if (usuarioComEmail != null && !usuarioComEmail.getId().equals(idInteger)) {
+        Optional<Usuario> usuarioComEmailOpt = this.repository.findByEmail(data.email());
+
+        if (usuarioComEmailOpt.isPresent() && !usuarioComEmailOpt.get().getId().equals(idInteger)) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
                     .body(Map.of("message", "Email já cadastrado."));
@@ -73,13 +75,12 @@ public class UsuarioController {
                     .body(Map.of("message", "CPF deve conter exatamente 11 dígitos numéricos, sem letras ou símbolos."));
         }
 
-        Usuario usuarioComCpf = repository.findByCpf(data.cpf());
-        if (usuarioComCpf != null && !usuarioComCpf.getId().equals(idInteger)) {
+        Optional<Usuario> usuarioComCpfOpt = repository.findByCpf(data.cpf());
+        if (usuarioComCpfOpt.isPresent() && !usuarioComCpfOpt.get().getId().equals(idInteger)) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
                     .body(Map.of("message", "CPF já cadastrado."));
         }
-
 
 
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());

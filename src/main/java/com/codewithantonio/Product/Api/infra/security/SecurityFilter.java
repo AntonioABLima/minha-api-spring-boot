@@ -1,5 +1,6 @@
 package com.codewithantonio.Product.Api.infra.security;
 
+import com.codewithantonio.Product.Api.domain.usuario.Usuario;
 import com.codewithantonio.Product.Api.repositories.UsuarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -16,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
@@ -52,13 +54,13 @@ public class SecurityFilter extends OncePerRequestFilter {
             return;
         }
 
-        UserDetails user = userRepository.findByEmail(subject);
-        if (user == null) {
+        Optional<Usuario> userOpt = userRepository.findByEmail(subject);
+        if (userOpt.isEmpty()) {
             sendUnauthorizedResponse(response, mapper, "Usuário não encontrado.");
             return;
         }
 
-        setAuthentication(user);
+        setAuthentication(userOpt.get());
         filterChain.doFilter(request, response);
     }
 
