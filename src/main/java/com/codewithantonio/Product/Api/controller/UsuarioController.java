@@ -1,113 +1,50 @@
 package com.codewithantonio.Product.Api.controller;
 
-import com.codewithantonio.Product.Api.domain.usuario.UsuarioRequestDTO;
 import com.codewithantonio.Product.Api.domain.usuario.Usuario;
+import com.codewithantonio.Product.Api.domain.usuario.UsuarioRequestDTO;
 import com.codewithantonio.Product.Api.domain.usuario.UsuarioResponseDTO;
-import com.codewithantonio.Product.Api.infra.exception.ResourceNotFoundException;
-import com.codewithantonio.Product.Api.repositories.UsuarioRepository;
+import com.codewithantonio.Product.Api.services.UsuarioService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/user")
 public class UsuarioController {
+
     @Autowired
-    private UsuarioRepository repository;
+    private UsuarioService usuarioService;
 
     @GetMapping
-    public ResponseEntity getAllUsuarios(){
-        List<UsuarioResponseDTO> userList = this.repository.findAll().stream().map(UsuarioResponseDTO::new).toList();
-
-        return ResponseEntity.ok(userList);
+    public ResponseEntity<List<UsuarioResponseDTO>> getAllUsuarios() {
+        return ResponseEntity.ok(usuarioService.getAllUsuarios());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity getUserById(@PathVariable String id){
-        Usuario usuario = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
-
-        return ResponseEntity.ok(new UsuarioResponseDTO(usuario));
-    }
-
-    @PostMapping
-    public ResponseEntity postUsuario(@RequestBody @Valid UsuarioRequestDTO data){
-        System.out.println(data);
-        Usuario newUsuario = new Usuario(data);
-        repository.save(newUsuario);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(Map.of(
-                        "mensagem", "Usuário criado com sucesso!",
-                        "id", newUsuario.getId()
-                ));
+    public ResponseEntity<UsuarioResponseDTO> getUserById(@PathVariable String id) {
+        return ResponseEntity.ok(new UsuarioResponseDTO(usuarioService.getUserById(id)));
     }
 
     @Transactional
     @PutMapping("/{id}")
-    public ResponseEntity updateUsuario(@PathVariable String id, @RequestBody  @Valid UsuarioRequestDTO data){
-        Integer idInteger = Integer.valueOf(id);
-
-        Usuario usuario = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
-
-        Optional<Usuario> usuarioComEmailOpt = this.repository.findByEmail(data.email());
-
-        if (usuarioComEmailOpt.isPresent() && !usuarioComEmailOpt.get().getId().equals(idInteger)) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body(Map.of("message", "Email já cadastrado."));
-        }
-
-
-        if (!data.cpf().matches("^\\d{11}$")) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", "CPF deve conter exatamente 11 dígitos numéricos, sem letras ou símbolos."));
-        }
-
-        Optional<Usuario> usuarioComCpfOpt = repository.findByCpf(data.cpf());
-        if (usuarioComCpfOpt.isPresent() && !usuarioComCpfOpt.get().getId().equals(idInteger)) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body(Map.of("message", "CPF já cadastrado."));
-        }
-
-
-        String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
-
-        usuario.setNome(data.nome());
-        usuario.setPassword(encryptedPassword);
-        usuario.setEmail(data.email());
-        usuario.setCpf(data.cpf());
-        usuario.setRole(data.role());
-
+    public ResponseEntity<Map<String, Object>> updateUsuario(@PathVariable String id, @RequestBody @Valid UsuarioRequestDTO data) {
+        Usuario usuarioAtualizado = usuarioService.updateUser(id, data);
         return ResponseEntity.ok(Map.of(
                 "mensagem", "Usuário atualizado com sucesso!",
-                "usuario", usuario
+                "usuario", usuarioAtualizado
         ));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteUsuario(@PathVariable String id) {
-        Integer userId = Integer.valueOf(id);
-        Usuario usuario = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário nao encontrado."));
-
-        repository.delete(usuario);
-
+    public ResponseEntity<Map<String, String>> deleteUsuario(@PathVariable String id) {
+        usuarioService.deleteUser(id);
         return ResponseEntity.ok(Map.of(
                 "mensagem", "Usuário removido com sucesso!"
         ));
     }
-
 }

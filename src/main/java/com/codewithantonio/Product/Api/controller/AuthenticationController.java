@@ -47,13 +47,13 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody @Valid RegisterDTO data){
-        if (this.repository.findByEmail(data.email()) != null) {
+        if (this.repository.findByEmail(data.email()).isPresent()) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
                     .body(Map.of("message", "Email já cadastrado."));
         }
 
-        if (this.repository.findByCpf(data.cpf()) != null) {
+        if (this.repository.findByCpf(data.cpf()).isPresent()) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
                     .body(Map.of("message", "CPF já cadastrado."));
